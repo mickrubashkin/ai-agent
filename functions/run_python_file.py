@@ -36,7 +36,7 @@ def run_python_file(working_directory, file_path, args=[]):
 
 schema_run_python_file = types.FunctionDeclaration(
     name="run_python_file",
-    description="Execute Python files with optional arguments, constrained to the working directory, and return the output from the interpreter. Path to file for execution provided as argument. List of optional argumnets provided as a second argument.",
+    description="Execute Python files with optional arguments, constrained to the working directory, and return the output from the interpreter. Path to file for execution provided as argument. List of optional argumnets provided as a second argument, and is optional (default is empty list)",
     parameters=types.Schema(
         type=types.Type.OBJECT,
         properties={
