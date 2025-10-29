@@ -35,7 +35,16 @@ def main():
         types.Content(role="user", parts=[types.Part(text=user_prompt)]),
     ]
 
-    generate_content(client, messages, verbose)
+    try:
+        for i in range(20):
+            response = generate_content(client, messages, verbose)
+            if response:
+                print("Final response:")
+                print(response)
+                break
+
+    except Exception as e:
+        print(f"[ERROR] {type(e).__name__}: {e}")
 
 
 def generate_content(client, messages, verbose):
@@ -54,27 +63,22 @@ def generate_content(client, messages, verbose):
         print("Prompt tokens:", response.usage_metadata.prompt_token_count)
         print("Response tokens:", response.usage_metadata.candidates_token_count)
 
-    if not response.function_calls:
-        print("Response: ", response.text)
+    called_tool = False
+
+    for candidate in response.candidates:
+        messages.append(candidate.content)
+        for part in candidate.content.parts:
+            if part.function_call:
+                result = call_function(part.function_call, verbose)
+                messages.append(result)
+                called_tool = True
+
+    if called_tool:
+        return None
+    elif response.text:
         return response.text
-
-    function_responses = []
-    for function_call_part in response.function_calls:
-        function_call_result = call_function(function_call_part, verbose)
-
-        if (
-            not function_call_result.parts
-            or not function_call_result.parts[0].function_response
-        ):
-            raise Exception("empty function call result")
-
-        if verbose:
-            print(f"-> {function_call_result.parts[0].function_response.response}")
-
-        function_responses.append(function_call_result.parts[0])
-
-    if not function_responses:
-        raise Exception("no function responses generated, exiting.")
+    else:
+        return None
 
 
 if __name__ == "__main__":
